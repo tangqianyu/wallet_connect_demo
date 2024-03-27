@@ -7,7 +7,7 @@ import { log } from 'console';
 import { useContext, useState } from 'react';
 
 export default function ConnectButton() {
-    const { currentWallet, setCurrentWallet, connected, setConnected, address, setAddress, publicKey, setPublicKey, accounts, setAccounts } = useContext(WalletContext);
+    const { currentWallet, setCurrentWallet, connected, setConnected, address, setAddress, publicKey, setPublicKey } = useContext(WalletContext);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [messageApi, contextHolder] = message.useMessage();
@@ -18,13 +18,16 @@ export default function ConnectButton() {
 
     const handleConnect = async (wallet: WalletType) => {
         if (wallet === 'unisat') {
-            let unisat = (window as any).unisat;
+            const unisat = (window as any).unisat;
             if (!unisat) {
                 messageApi.error('Please install unisat wallet!');
                 return;
             }
 
             const res = await unisat.requestAccounts();
+            unisat.on('accountsChanged', () => {
+                handleAccountChange(wallet);
+            });
             setCurrentWallet(wallet);
             setConnected(true);
             setAddress(res[0]);
@@ -36,9 +39,10 @@ export default function ConnectButton() {
                 return;
             }
 
-            console.log(okx);
-
             const res = await okx.bitcoin.connect();
+            okx.bitcoin.on('accountChanged', (addressInfo: { address: string; publicKey: string }) => {
+                handleAccountChange('okx', addressInfo);
+            });
             setCurrentWallet(wallet);
             setConnected(true);
             setAddress(res.address);
@@ -49,8 +53,17 @@ export default function ConnectButton() {
     const handleDisConnect = () => {
         setCurrentWallet(null);
         setConnected(false);
-        
         setAddress('');
+    };
+
+    const handleAccountChange = async (wallet: WalletType, addressInfo?: { address: string; publicKey: string }) => {
+        if (wallet === 'unisat') {
+            const unisat = (window as any).unisat;
+            const res = await unisat.getAccounts();
+            setAddress(res[0]);
+        } else if (wallet === 'okx') {
+            setAddress(addressInfo?.address as string);
+        }
     };
 
     return (

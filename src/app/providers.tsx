@@ -17,8 +17,6 @@ export interface WalletContextProps {
     setAddress: Dispatch<SetStateAction<string>>;
     publicKey: string;
     setPublicKey: Dispatch<SetStateAction<string>>;
-    accounts: string[];
-    setAccounts: Dispatch<SetStateAction<string[]>>;
 }
 
 export const WalletContext = createContext({} as WalletContextProps);
@@ -29,7 +27,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const [connected, setConnected] = useState(false);
     const [address, setAddress] = useState('');
     const [publicKey, setPublicKey] = useState('');
-    const [accounts, setAccounts] = useState([] as string[]);
 
     const value: WalletContextProps = {
         currentWallet,
@@ -39,9 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         address,
         setAddress,
         publicKey,
-        setPublicKey,
-        accounts,
-        setAccounts
+        setPublicKey
     };
 
     return (
